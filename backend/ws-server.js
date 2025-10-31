@@ -1,26 +1,18 @@
-import http from 'http'
-import { WebSocketServer } from 'ws'
-import { createRequire } from 'module'
+import http from "http";
+import WebSocket from "ws";
+import * as Y from "yjs";
+import { setupWSConnection } from "y-websocket/bin/utils.js";
 
-// allow require in ESM
-const require = createRequire(import.meta.url)
+const port = process.env.PORT || 1234;
 
-// ✅ correct import
-const { setupWSConnection } = require('y-websocket/bin/utils.js')
+const server = http.createServer();
+const wss = new WebSocket.Server({ server });
 
-const port = process.env.PORT || 1234
-
-const server = http.createServer((req, res) => {
-  res.writeHead(200)
-  res.end('Yjs WebSocket Server')
-})
-
-const wss = new WebSocketServer({ server })
-
-wss.on('connection', (conn, req) => {
-  setupWSConnection(conn, req)
-})
+wss.on("connection", (socket, req) => {
+  const docName = req.url.slice(1) || "default-room";
+  setupWSConnection(socket, req, { docName });
+});
 
 server.listen(port, () => {
-  console.log(`✅ WebSocket server running at ws://localhost:${port}`)
-})
+  console.log(`✅ Y-WebSocket server running on port ${port}`);
+});
