@@ -1,15 +1,16 @@
-import { WebSocketServer } from 'ws';
-import * as Y from 'yjs';
-import { setupWSConnection } from 'y-websocket/bin/utils.cjs'; 
+const http = require('http');
+const WebSocket = require('ws');
+const setupWSConnection = require('y-websocket/bin/utils.js').setupWSConnection;
 
-const PORT = process.env.PORT || 10000;
+const server = http.createServer();
+const wss = new WebSocket.Server({ server });
 
-const wss = new WebSocketServer({ port: PORT });
+// Handle WebSocket connections
+wss.on('connection', (ws, req) => {
+  setupWSConnection(ws, req);
+});
 
-console.log(`✅ Y-WebSocket server running on port ${PORT}`);
-
-wss.on('connection', (conn, req) => {
-  const docName = req.url?.slice(1) || 'monaco-editor-room';
-  const ydoc = new Y.Doc();
-  setupWSConnection(conn, req, { docName, ydoc });
+const PORT = process.env.PORT || 1234;
+server.listen(PORT, () => {
+  console.log(`✅ YJS WebSocket Server running on port ${PORT}`);
 });
