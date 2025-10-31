@@ -1,11 +1,12 @@
-// ws-server.js
 import http from 'http'
 import { WebSocketServer } from 'ws'
 import { createRequire } from 'module'
 
-// Create a require() function in ESM
+// allow require in ESM
 const require = createRequire(import.meta.url)
-const { setupWSConnection } = require('y-websocket')
+
+// ✅ correct import
+const { setupWSConnection } = require('y-websocket/bin/utils.js')
 
 const port = process.env.PORT || 1234
 
@@ -21,5 +22,5 @@ wss.on('connection', (conn, req) => {
 })
 
 server.listen(port, () => {
-  console.log(`WebSocket server running at ws://localhost:${port}`)
+  console.log(`✅ WebSocket server running at ws://localhost:${port}`)
 })
