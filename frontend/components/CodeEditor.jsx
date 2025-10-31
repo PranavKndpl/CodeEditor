@@ -28,7 +28,7 @@ print(greet("World"))`);
   useEffect(() => {
     ydocRef.current = new Y.Doc();
     providerRef.current = new WebsocketProvider(
-      'ws://localhost:1234', // WebSocket server
+      'wss://codeeditor-websocket.onrender.com', // WebSocket server
       'monaco-editor-room',
       ydocRef.current
     );
@@ -159,3 +159,4 @@ print(greet("World"))`);
     </div>
   );
 }
+
