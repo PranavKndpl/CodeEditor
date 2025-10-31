@@ -9,13 +9,12 @@ import { MonacoBinding } from 'y-monaco';
 const API_URL = 'https://unstooping-prolongably-donnell.ngrok-free.dev';
 
 export default function CodeEditor() {
-  // This state is just for the default value
   const [defaultCode] = useState(`# Write your Python code here
 def greet(name):
     return f"Hello, {name}!"
 
 print(greet("World"))`);
-
+  
   const [output, setOutput] = useState('');
   const [isDark, setIsDark] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,88 +22,107 @@ print(greet("World"))`);
 
   const ydocRef = useRef(null);
   const providerRef = useRef(null);
-  const bindingRef = useRef(null);
-  const editorRef = useRef(null); // Ref to store the editor instance
+  const editorRef = useRef(null); 
 
   // Initialize Yjs + WebSocket
   useEffect(() => {
-    ydocRef.current = new Y.Doc();
-    providerRef.current = new WebsocketProvider(
-      'wss://codeeditor-websocket.onrender.com', // WebSocket server
+    const ydoc = new Y.Doc();
+    const provider = new WebsocketProvider(
+      'wss://codeeditor-websocket.onrender.com',
       'monaco-editor-room',
-      ydocRef.current
+      ydoc
     );
 
-    return () => {
-      providerRef.current?.destroy();
-      ydocRef.current?.destroy();
+    ydocRef.current = ydoc;
+    providerRef.current = provider;
+
+    // Fix for duplicate text on reload
+    const syncHandler = () => {
+      if (ydoc.getText('monaco').length === 0) {
+        ydoc.getText('monaco').insert(0, defaultCode);
+      }
     };
-  }, []);
+    
+    provider.on('sync', syncHandler);
+
+    return () => {
+      provider.off('sync', syncHandler);
+      provider.destroy();
+      ydoc.destroy();
+    };
+  }, [defaultCode]); 
 
   const handleEditorDidMount = (editor) => {
-    // Store the editor instance
-    editorRef.current = editor; 
+    editorRef.current = editor;
+    
+    if (!ydocRef.current || !providerRef.current) return;
     const yText = ydocRef.current.getText('monaco');
 
-    if (bindingRef.current) bindingRef.current.destroy();
-    
-    // Create the binding
-    bindingRef.current = new MonacoBinding(
+    new MonacoBinding(
       yText,
       editor.getModel(),
       new Set([editor]),
       providerRef.current.awareness
     );
-
-    // FIX: Set the initial value in Yjs, not the editor
-    // This stops the duplication bug
-    if (yText.length === 0) {
-      yText.insert(0, defaultCode);
-    }
   };
 
-  // Poll for job result (This is the resilient version)
+  // Poll for job result
   useEffect(() => {
     if (!jobId) return;
 
     const interval = setInterval(async () => {
       try {
-        const res = await axios.get(`${API_URL}/result/${jobId}`);
-        // If we get a valid response, check the status
+        // --- THIS IS THE NGROK FIX ---
+        // We add the 'ngrok-skip-browser-warning' header
+        const res = await axios.get(`${API_URL}/result/${jobId}`, {
+          headers: {
+            'ngrok-skip-browser-warning': '69420'
+          }
+        });
+
         if (res.data.status === 'done') {
           setOutput(res.data.output);
           setIsLoading(false);
           clearInterval(interval);
         }
-        // If status is 'pending', do nothing and let it poll again
       } catch (err) {
-        // FIX: This is the resilient part. It logs the error but
-        // DOES NOT stop polling. This gets past the ngrok error.
+        // --- THIS IS THE NEW CATCH BLOCK ---
+        // It will now show you the error in the output box
         console.error("Polling error:", err.message);
+        setOutput(`✗ Polling Error:\n${err.message}\n\nIs ngrok running?`);
+        setIsLoading(false);
+        clearInterval(interval);
       }
-    }, 1000); // Poll every 1 second
+    }, 1000); 
 
     return () => clearInterval(interval);
   }, [jobId]);
 
 
   const handleRunCode = async () => {
-    if (!editorRef.current) return; // Make sure editor is ready
+    if (!editorRef.current) return; 
 
     setIsLoading(true);
     setOutput('🔄 Running...');
 
-    // FIX: Get the current code *directly* from the editor model
-    // This works with the binding
     const currentCode = editorRef.current.getValue();
 
     try {
       const { data } = await axios.post(
         `${API_URL}/run-python`,
-        { code: currentCode }, // Send the fresh code
-        { headers: { 'Content-Type': 'application/json' } }
+        { code: currentCode },
+        { 
+          headers: { 
+            'Content-Type': 'application/json',
+            // Add the skip header to the POST request too
+            'ngrok-skip-browser-warning': '69420'
+          } 
+        }
       );
+      
+      console.log("Job created, ID:", data.jobId); // Proof for browser console
       setJobId(data.jobId);
+
     } catch (err) {
       setOutput(`✗ Submission Error:\n${err.message}`);
       setIsLoading(false);
@@ -112,6 +130,8 @@ print(greet("World"))`);
   };
 
   return (
+    // ... all your JSX ...
+    // (No changes needed to the JSX part)
     <div className={`flex flex-col h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
       <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-4 py-3 flex items-center justify-between`}>
@@ -143,7 +163,6 @@ print(greet("World"))`);
           <Editor
             height="100%"
             language="python"
-            // FIX: No 'value' or 'onChange' props to stop the duplication
             onMount={handleEditorDidMount}
             theme={isDark ? 'vs-dark' : 'light'}
             options={{
