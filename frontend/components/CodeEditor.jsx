@@ -9,11 +9,13 @@ import { MonacoBinding } from 'y-monaco';
 const API_URL = 'https://unstooping-prolongably-donnell.ngrok-free.dev';
 
 export default function CodeEditor() {
-  const [code, setCode] = useState(`# Write your Python code here
+  // This state is just for the default value
+  const [defaultCode] = useState(`# Write your Python code here
 def greet(name):
     return f"Hello, {name}!"
 
 print(greet("World"))`);
+
   const [output, setOutput] = useState('');
   const [isDark, setIsDark] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +24,7 @@ print(greet("World"))`);
   const ydocRef = useRef(null);
   const providerRef = useRef(null);
   const bindingRef = useRef(null);
-  const editorRef = useRef(null);
+  const editorRef = useRef(null); // Ref to store the editor instance
 
   // Initialize Yjs + WebSocket
   useEffect(() => {
@@ -40,10 +42,13 @@ print(greet("World"))`);
   }, []);
 
   const handleEditorDidMount = (editor) => {
-    editorRef.current = editor;
+    // Store the editor instance
+    editorRef.current = editor; 
     const yText = ydocRef.current.getText('monaco');
 
     if (bindingRef.current) bindingRef.current.destroy();
+    
+    // Create the binding
     bindingRef.current = new MonacoBinding(
       yText,
       editor.getModel(),
@@ -51,41 +56,51 @@ print(greet("World"))`);
       providerRef.current.awareness
     );
 
-    if (yText.length === 0) editor.setValue(code);
-    else setCode(yText.toString());
+    // FIX: Set the initial value in Yjs, not the editor
+    if (yText.length === 0) {
+      yText.insert(0, defaultCode);
+    }
   };
 
-  // Poll for job result
+  // Poll for job result (This is the resilient version)
   useEffect(() => {
     if (!jobId) return;
 
     const interval = setInterval(async () => {
       try {
         const res = await axios.get(`${API_URL}/result/${jobId}`);
+        // If we get a valid response, check the status
         if (res.data.status === 'done') {
           setOutput(res.data.output);
           setIsLoading(false);
           clearInterval(interval);
         }
+        // If status is 'pending', do nothing and let it poll again
       } catch (err) {
-        // This is the fix: We log the error but do not clear the interval.
-        // This allows polling to continue even if ngrok causes a temporary error.
+        // FIX: Log the error but DO NOT clear the interval.
+        // This allows polling to continue.
         console.error("Polling error:", err.message);
+        // Open your browser console (F12) to see these errors!
       }
-    }, 1000);
+    }, 1000); // Poll every 1 second
 
     return () => clearInterval(interval);
   }, [jobId]);
 
 
   const handleRunCode = async () => {
+    if (!editorRef.current) return; // Make sure editor is ready
+
     setIsLoading(true);
     setOutput('🔄 Running...');
+
+    // FIX: Get the current code *directly* from the editor model
+    const currentCode = editorRef.current.getValue();
 
     try {
       const { data } = await axios.post(
         `${API_URL}/run-python`,
-        { code },
+        { code: currentCode }, // Send the fresh code
         { headers: { 'Content-Type': 'application/json' } }
       );
       setJobId(data.jobId);
@@ -123,13 +138,11 @@ print(greet("World"))`);
         <div className={`flex-1 flex flex-col border-b lg:border-b-0 lg:border-r ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-200'} px-4 py-3 border-b flex items-center justify-between`}>
             <h2 className={`${isDark ? 'text-gray-300' : 'text-gray-700'} text-sm font-semibold tracking-wide`}>CODE</h2>
-            <span className={`${isDark ? 'text-gray-500' : 'text-gray-400'} text-xs`}>{code.length} characters</span>
           </div>
           <Editor
             height="100%"
             language="python"
-            value={code}
-            onChange={(v) => setCode(v || '')}
+            // FIX: No 'value' or 'onChange' props
             onMount={handleEditorDidMount}
             theme={isDark ? 'vs-dark' : 'light'}
             options={{
