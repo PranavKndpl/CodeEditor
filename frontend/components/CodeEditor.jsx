@@ -57,6 +57,7 @@ print(greet("World"))`);
     );
 
     // FIX: Set the initial value in Yjs, not the editor
+    // This stops the duplication bug
     if (yText.length === 0) {
       yText.insert(0, defaultCode);
     }
@@ -77,10 +78,9 @@ print(greet("World"))`);
         }
         // If status is 'pending', do nothing and let it poll again
       } catch (err) {
-        // FIX: Log the error but DO NOT clear the interval.
-        // This allows polling to continue.
+        // FIX: This is the resilient part. It logs the error but
+        // DOES NOT stop polling. This gets past the ngrok error.
         console.error("Polling error:", err.message);
-        // Open your browser console (F12) to see these errors!
       }
     }, 1000); // Poll every 1 second
 
@@ -95,6 +95,7 @@ print(greet("World"))`);
     setOutput('🔄 Running...');
 
     // FIX: Get the current code *directly* from the editor model
+    // This works with the binding
     const currentCode = editorRef.current.getValue();
 
     try {
@@ -142,7 +143,7 @@ print(greet("World"))`);
           <Editor
             height="100%"
             language="python"
-            // FIX: No 'value' or 'onChange' props
+            // FIX: No 'value' or 'onChange' props to stop the duplication
             onMount={handleEditorDidMount}
             theme={isDark ? 'vs-dark' : 'light'}
             options={{
