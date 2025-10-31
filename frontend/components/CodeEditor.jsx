@@ -67,10 +67,10 @@ print(greet("World"))`);
           setIsLoading(false);
           clearInterval(interval);
         }
-      } catch {
-        setOutput('✗ Error fetching result');
-        setIsLoading(false);
-        clearInterval(interval);
+      } catch (err) {
+        // This is the fix: We log the error but do not clear the interval.
+        // This allows polling to continue even if ngrok causes a temporary error.
+        console.error("Polling error:", err.message);
       }
     }, 1000);
 
@@ -83,12 +83,12 @@ print(greet("World"))`);
     setOutput('🔄 Running...');
 
     try {
-      const res = await axios.post(
+      const { data } = await axios.post(
         `${API_URL}/run-python`,
         { code },
         { headers: { 'Content-Type': 'application/json' } }
       );
-      setJobId(res.data.jobId);
+      setJobId(data.jobId);
     } catch (err) {
       setOutput(`✗ Submission Error:\n${err.message}`);
       setIsLoading(false);
@@ -118,7 +118,7 @@ print(greet("World"))`);
       </div>
 
       {/* Main editor/output */}
-      <div className="flex-1 flex lg:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Code editor */}
         <div className={`flex-1 flex flex-col border-b lg:border-b-0 lg:border-r ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-200'} px-4 py-3 border-b flex items-center justify-between`}>
@@ -159,4 +159,3 @@ print(greet("World"))`);
     </div>
   );
 }
-
