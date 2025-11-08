@@ -65,42 +65,65 @@ Before running the server, make sure you have these installed:
 
 ## 🚀 Running the Local Server
 
-You will need two separate terminals for this.
+You only need the `server/` folder to use the live website. You can get it in two ways:
 
-1.  **Clone the repository:**
+### Option 1: For Developers (Clone Full Project)
 
+1.  Clone the entire repository:
     ```bash
-    git clone [https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git)
-    cd YOUR_REPO_NAME/server
+    git clone [https://github.com/PranavKndpl/CodeEditor.git](https://github.com/PranavKndpl/CodeEditor.git)
+    ```
+2.  Navigate into the server directory:
+    ```bash
+    cd CodeEditor/server
     ```
 
-2.  **Install dependencies:**
+### Option 2: For Users (Download Server Only)
+
+1.  Run this command to download **only** the `server` folder into a new directory called `my-collab-server`:
+    ```bash
+    npx degit PranavKndpl/CodeEditor/server my-collab-server
+    ```
+2.  Navigate into your new server directory:
+    ```bash
+    cd my-collab-server
+    ```
+
+-----
+
+### Starting the Server
+
+Once you are inside the `server/` (or `my-collab-server/`) directory, you'll need two terminals.
+
+1.  **Install dependencies (first time only):**
 
     ```bash
     npm install
     ```
 
-3.  **In your FIRST terminal, start the server:**
+2.  **In your FIRST terminal, start the server:**
     *(This will start Redis, the Node.js API, and the Docker worker)*
 
     ```bash
     npm start
     ```
 
-4.  **In a SECOND terminal, start ngrok:**
+    > **Note:** Make sure your `package.json`'s "start" script runs `concurrently "redis-server" "node server.js" "node worker.js"`
+
+3.  **In a SECOND terminal, start ngrok:**
     *(This exposes your local server (port 3001) to the internet)*
 
     ```bash
     ngrok http 3001
     ```
 
-5.  **Copy the ngrok public URL** from your **second** terminal (it looks like this):
+4.  **Copy the ngrok public URL** from your **second** terminal (it looks like this):
 
     ```text
     Forwarding   [https://something.ngrok.io](https://something.ngrok.io) -> http://localhost:3001
     ```
 
-6.  **Paste this URL** into the input box on the live website and click **"Save URL"**. You are now ready to run code.
+5.  **Paste this URL** into the input box on the live website and click **"Save URL"**. You are now ready to run code.
 
 -----
 
