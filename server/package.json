@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
-    "ngrok": "^5.0.0"
+    "ngrok": "^4.3.3"
   }
 }
+
