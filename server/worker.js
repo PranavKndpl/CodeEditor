@@ -1,10 +1,8 @@
-// This is your new worker.js
-
 import Docker from 'dockerode';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { redisClient } from './redisClient.js'; // Imports the client from Part 1
+import { redisClient } from './redisClient.js'; 
 
 const docker = new Docker();
 
@@ -47,7 +45,7 @@ async function runWorker() {
                         Memory: 128 * 1024 * 1024,
                         CpuQuota: 50000,
                         PidsLimit: 32,
-                        AutoRemove: false, // Correctly set to false
+                        AutoRemove: false,
                         SecurityOpt: ['no-new-privileges'],
                         CapDrop: ['ALL'],
                     },
@@ -65,7 +63,6 @@ async function runWorker() {
                     await container.kill();
                     await container.remove(); 
                     
-                    // --- FIX 1 (v4 SYNTAX) ---
                     await redisClient.set(`result:${jobId}`, '⏰ Execution timed out', { EX: 300 });
                     
                     continue;
@@ -76,7 +73,6 @@ async function runWorker() {
 
                 await container.remove(); 
 
-                // --- FIX 2 (v4 SYNTAX) ---
                 await redisClient.set(`result:${jobId}`, outputStr, { EX: 300 });
                 
                 console.log(`✅ Job ${jobId} done`);
@@ -87,7 +83,6 @@ async function runWorker() {
                     try { await container.remove(); } catch (e) { /* ignore */ }
                 }
 
-                // --- FIX 3 (v4 SYNTAX) ---
                 await redisClient.set(`result:${jobId}`, `❌ Docker Error: ${err.message}`, { EX: 300 });
 
             } finally {
@@ -101,5 +96,6 @@ async function runWorker() {
         }
     }
 }
+
 
 runWorker().catch(err => console.error('Worker failed to start:', err));
