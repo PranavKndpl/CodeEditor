@@ -16,18 +16,15 @@ app.get('/result/:jobId', async (req, res) => {
   try {
     const { jobId } = req.params;
     
-    // --- NEW LOGGING ---
     console.log(`[Server 1] Polling for job: ${jobId}`);
 
     const output = await redisClient.get(`result:${jobId}`);
 
     if (!output) {
-      // --- NEW LOGGING ---
       console.log(`[Server 1] Result for ${jobId}: NOT FOUND (Pending)`);
       return res.json({ jobId, status: 'pending' });
     }
 
-    // --- NEW LOGGING ---
     console.log(`[Server 1] Result for ${jobId}: FOUND! Sending to client.`);
     res.json({ jobId, status: 'done', output });
 
@@ -49,7 +46,6 @@ app.post('/run-python', async (req, res) => {
 
     await redisClient.lPush('jobQueue', JSON.stringify(job));
     
-    // --- NEW LOGGING ---
     console.log(`[Server 1] New job created: ${jobId}`);
     res.json({ jobId });
 
@@ -59,24 +55,7 @@ app.post('/run-python', async (req, res) => {
   }
 });
 
-// Start server
 const port = 3001;
 app.listen(port, () => {
   console.log(`Backend API listening at http://localhost:${port}`);
 });
-// GET endpoint: fetch result for a given jobId
-// app.get('/result/:jobId', async (req, res) => {
-//   try {
-//     const { jobId } = req.params;
-//     const output = await redisClient.get(`result:${jobId}`);
-
-//     if (!output) {
-//       return res.json({ jobId, status: 'pending' });
-//     }
-
-//     res.json({ jobId, status: 'done', output });
-//   } catch (err) {
-//     console.error('Error fetching result:', err);
-//     res.status(500).json({ error: err.message || 'Server error' });
-//   }
-// });
