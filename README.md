@@ -1,3 +1,4 @@
+````markdown
 # 🧑‍💻 Collaborative Code Editor
 
 A real-time **collaborative code editor** that lets multiple users edit and run code together in the browser.
@@ -65,6 +66,8 @@ Before running the server, make sure you have these installed:
 
 ## 🚀 Running the Local Server
 
+You will need two separate terminals for this.
+
 1.  **Clone the repository:**
 
     ```bash
@@ -78,26 +81,27 @@ Before running the server, make sure you have these installed:
     npm install
     ```
 
-3.  **Start everything (Redis + server + worker + ngrok):**
+3.  **In your FIRST terminal, start the server:**
+    *(This will start Redis, the Node.js API, and the Docker worker)*
 
     ```bash
     npm start
     ```
 
-    This will:
+4.  **In a SECOND terminal, start ngrok:**
+    *(This exposes your local server (port 3001) to the internet)*
 
-      * Start Redis
-      * Launch your Node.js API (`server.js`)
-      * Start the Docker worker (`worker.js`)
-      * Open an ngrok tunnel exposing port 3001
+    ```bash
+    ngrok http 3001
+    ```
 
-4.  **Copy the ngrok public URL** shown in your terminal (it looks like this):
+5.  **Copy the ngrok public URL** from your **second** terminal (it looks like this):
 
     ```text
     Forwarding   [https://something.ngrok.io](https://something.ngrok.io) -> http://localhost:3001
     ```
 
-    This URL is your local execution server endpoint.
+6.  **Paste this URL** into the input box on the live website and click **"Save URL"**. You are now ready to run code.
 
 -----
 
@@ -108,7 +112,7 @@ Before running the server, make sure you have these installed:
   * The **local server** (this part) receives code from the editor and safely executes it inside a Docker container, returning the output via Redis.
   * The code execution happens on your local machine, not the hosted frontend.
 
-⚠️ **Note:** Each user running this locally will have their own unique ngrok URL, so if you want your hosted frontend to connect to your local instance, you’ll need to update the frontend configuration temporarily to match your ngrok link.
+⚠️ **Note:** Each user running this locally will have their own unique ngrok URL. They must paste their URL into the input box on the frontend and click **"Save URL"** to connect their browser to their local backend.
 
 -----
 
@@ -130,3 +134,5 @@ It means Docker isn’t running or you don’t have permission to access it.
 
 If you’d like to extend or improve the project, feel free to fork the repository and submit a pull request.
 
+```
+```
