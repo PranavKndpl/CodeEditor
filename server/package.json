@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "concurrently \"redis-server\" \"node server.js\" \"node worker.js\" \"ngrok http 3001\"",
+    "start": "concurrently \"redis-server\" \"node server.js\" \"node worker.js\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -26,4 +26,5 @@
     "ngrok": "^4.3.3"
   }
 }
+
 
