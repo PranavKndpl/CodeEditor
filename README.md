@@ -1,4 +1,3 @@
-````markdown
 # 🧑‍💻 Collaborative Code Editor
 
 A real-time **collaborative code editor** that lets multiple users edit and run code together in the browser.
@@ -133,6 +132,3 @@ It means Docker isn’t running or you don’t have permission to access it.
 ## 🤝 Contributing
 
 If you’d like to extend or improve the project, feel free to fork the repository and submit a pull request.
-
-```
-```
