@@ -6,7 +6,7 @@ import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { MonacoBinding } from 'y-monaco';
 
-const API_URL = 'https://unstooping-prolongably-donnell.ngrok-free.dev';
+const DEFAULT_API_URL = 'https://unstooping-prolongably-donnell.ngrok-free.dev';
 
 export default function CodeEditor() {
   const [defaultCode] = useState(`# Write your Python code here
@@ -20,11 +20,20 @@ print(greet("World"))`);
   const [isLoading, setIsLoading] = useState(false);
   const [jobId, setJobId] = useState(null);
 
+ 
+  const [apiUrl, setApiUrl] = useState(() => 
+    localStorage.getItem('userApiUrl') || DEFAULT_API_URL
+  );
+  
+  const [urlInput, setUrlInput] = useState(() => 
+    localStorage.getItem('userApiUrl') || DEFAULT_API_URL
+  );
+
   const ydocRef = useRef(null);
   const providerRef = useRef(null);
   const editorRef = useRef(null); 
 
-  // Initialize Yjs + WebSocket
+
   useEffect(() => {
     const ydoc = new Y.Doc();
     const provider = new WebsocketProvider(
@@ -36,7 +45,7 @@ print(greet("World"))`);
     ydocRef.current = ydoc;
     providerRef.current = provider;
 
-    // Fix for duplicate text on reload
+
     const syncHandler = () => {
       if (ydoc.getText('monaco').length === 0) {
         ydoc.getText('monaco').insert(0, defaultCode);
@@ -66,15 +75,13 @@ print(greet("World"))`);
     );
   };
 
-  // Poll for job result
+
   useEffect(() => {
-    if (!jobId) return;
+    if (!jobId || !apiUrl) return;
 
     const interval = setInterval(async () => {
       try {
-        // --- THIS IS THE NGROK FIX ---
-        // We add the 'ngrok-skip-browser-warning' header
-        const res = await axios.get(`${API_URL}/result/${jobId}`, {
+        const res = await axios.get(`${apiUrl}/result/${jobId}`, {
           headers: {
             'ngrok-skip-browser-warning': '69420'
           }
@@ -86,21 +93,36 @@ print(greet("World"))`);
           clearInterval(interval);
         }
       } catch (err) {
-        // --- THIS IS THE NEW CATCH BLOCK ---
-        // It will now show you the error in the output box
         console.error("Polling error:", err.message);
-        setOutput(`✗ Polling Error:\n${err.message}\n\nIs ngrok running?`);
+        setOutput(`✗ Polling Error:\n${err.message}\n\nIs your server running and URL correct?`);
         setIsLoading(false);
         clearInterval(interval);
       }
     }, 1000); 
 
     return () => clearInterval(interval);
-  }, [jobId]);
+  }, [jobId, apiUrl]);
+
+
+  const handleSaveUrl = () => {
+    const newUrl = urlInput.trim();
+    if (newUrl) {
+      setApiUrl(newUrl);
+      localStorage.setItem('userApiUrl', newUrl);
+      alert('API URL Saved!');
+    } else {
+      alert('Please enter a valid URL.');
+    }
+  };
 
 
   const handleRunCode = async () => {
     if (!editorRef.current) return; 
+
+    if (!apiUrl) {
+      setOutput('✗ Please enter your backend\'s URL and click "Save URL" first!');
+      return;
+    }
 
     setIsLoading(true);
     setOutput('🔄 Running...');
@@ -109,18 +131,17 @@ print(greet("World"))`);
 
     try {
       const { data } = await axios.post(
-        `${API_URL}/run-python`,
+        `${apiUrl}/run-python`, // Use the state variable
         { code: currentCode },
         { 
           headers: { 
             'Content-Type': 'application/json',
-            // Add the skip header to the POST request too
             'ngrok-skip-browser-warning': '69420'
           } 
         }
       );
       
-      console.log("Job created, ID:", data.jobId); // Proof for browser console
+      console.log("Job created, ID:", data.jobId);
       setJobId(data.jobId);
 
     } catch (err) {
@@ -130,12 +151,26 @@ print(greet("World"))`);
   };
 
   return (
-    // ... all your JSX ...
-    // (No changes needed to the JSX part)
     <div className={`flex flex-col h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      {/* Header */}
-      <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-4 py-3 flex items-center justify-between`}>
+      <div className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-b px-4 py-3 flex items-center justify-between gap-4`}>
         <h1 className={`${isDark ? 'text-white' : 'text-gray-900'} text-xl font-semibold`}>Code Editor</h1>
+        
+        <div className="flex-grow flex justify-center items-center gap-2">
+          <input
+            type="text"
+            placeholder="Enter your ngrok URL here..."
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            className={`w-full max-w-sm px-3 py-1.5 rounded-lg text-sm ${isDark ? 'bg-gray-700 text-white placeholder-gray-400' : 'bg-gray-200 text-gray-900 placeholder-gray-500'}`}
+          />
+          <button
+            onClick={handleSaveUrl}
+            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium"
+          >
+            Save URL
+          </button>
+        </div>
+        
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsDark(!isDark)}
@@ -153,7 +188,6 @@ print(greet("World"))`);
         </div>
       </div>
 
-      {/* Main editor/output */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Code editor */}
         <div className={`flex-1 flex flex-col border-b lg:border-b-0 lg:border-r ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
