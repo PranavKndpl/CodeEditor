@@ -71,7 +71,7 @@ You only need the `server/` folder to use the live website. You can get it in tw
 
 1.  Clone the entire repository:
     ```bash
-    git clone [https://github.com/PranavKndpl/CodeEditor.git](https://github.com/PranavKndpl/CodeEditor.git)
+    git clone https://github.com/PranavKndpl/CodeEditor.git
     ```
 2.  Navigate into the server directory:
     ```bash
@@ -107,8 +107,6 @@ Once you are inside the `server/` (or `my-collab-server/`) directory, you'll nee
     ```bash
     npm start
     ```
-
-    > **Note:** Make sure your `package.json`'s "start" script runs `concurrently "redis-server" "node server.js" "node worker.js"`
 
 3.  **In a SECOND terminal, start ngrok:**
     *(This exposes your local server (port 3001) to the internet)*
