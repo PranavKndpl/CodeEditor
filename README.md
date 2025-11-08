@@ -118,7 +118,7 @@ Once you are inside the `server/` (or `my-collab-server/`) directory, you'll nee
 4.  **Copy the ngrok public URL** from your **second** terminal (it looks like this):
 
     ```text
-    Forwarding   [https://something.ngrok.io](https://something.ngrok.io) -> http://localhost:3001
+    Forwarding (https://something.ngrok.io) -> http://localhost:3001
     ```
 
 5.  **Paste this URL** into the input box on the live website and click **"Save URL"**. You are now ready to run code.
