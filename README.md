@@ -17,7 +17,7 @@ Frontend (React App):
 
 ## 🧩 Project Structure
 
-
+```bash
 root/
 ├── frontend/   # React app (deployed on Render)
 ├── backend/    # WebSocket server (also deployed on Render)
@@ -26,7 +26,7 @@ root/
     ├── worker.js
     ├── redisClient.js
     └── package.json
-
+````
 
   * **frontend/** — React-based collaborative editor UI (already deployed).
   * **backend/** — WebSocket signaling layer for real-time collaboration (also deployed).
@@ -67,22 +67,22 @@ Before running the server, make sure you have these installed:
 
 1.  **Clone the repository:**
 
-    
+    ```bash
     git clone [https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME.git)
     cd YOUR_REPO_NAME/server
-    
+    ```
 
 2.  **Install dependencies:**
 
-    
+    ```bash
     npm install
-    
+    ```
 
 3.  **Start everything (Redis + server + worker + ngrok):**
 
-    
+    ```bash
     npm start
-    
+    ```
 
     This will:
 
@@ -93,9 +93,9 @@ Before running the server, make sure you have these installed:
 
 4.  **Copy the ngrok public URL** shown in your terminal (it looks like this):
 
-    
+    ```text
     Forwarding   [https://something.ngrok.io](https://something.ngrok.io) -> http://localhost:3001
-    
+    ```
 
     This URL is your local execution server endpoint.
 
@@ -118,9 +118,9 @@ Make sure Docker is running before starting the worker — it’s required to cr
 
 If you get:
 
-
+```text
 Error: connect ECONNREFUSED /var/run/docker.sock
-
+```
 
 It means Docker isn’t running or you don’t have permission to access it.
 
